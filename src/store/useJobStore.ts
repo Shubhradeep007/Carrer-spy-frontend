@@ -8,6 +8,7 @@ export interface Job {
   location: string;
   type: string;
   description: string;
+  jobUrl?: string;
   matchScores?: Array<{ user: string; score: number }>;
   myMatch?: { score: number }; // Injected from backend
   salary?: { min: number; max: number; currency: string };

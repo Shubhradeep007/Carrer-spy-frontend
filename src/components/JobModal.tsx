@@ -70,9 +70,25 @@ export function JobModal() {
 
       <div className="sticky bottom-0 bg-background/90 backdrop-blur-md pt-6 mt-6 border-t border-border flex justify-end gap-3">
         <Button variant="outline" onClick={closeJobModal}>Close</Button>
-        <Button className="flex items-center gap-2">
-          Apply Now <ExternalLink className="h-4 w-4" />
-        </Button>
+        {selectedJob.jobUrl ? (
+          <a
+            href={selectedJob.jobUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex"
+          >
+            <Button className="flex items-center gap-2">
+              Apply Now <ExternalLink className="h-4 w-4" />
+            </Button>
+          </a>
+        ) : (
+          <Button 
+            className="flex items-center gap-2"
+            disabled
+          >
+            Apply Now <ExternalLink className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     </Modal>
   );

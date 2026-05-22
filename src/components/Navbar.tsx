@@ -24,6 +24,12 @@ export function Navbar() {
             <Link href="/dashboard" className="hover:text-foreground transition-colors">
               Dashboard
             </Link>
+            <Link href="/dashboard/jobs" className="hover:text-foreground transition-colors">
+              Jobs Board
+            </Link>
+            <Link href="/dashboard/resume" className="hover:text-foreground transition-colors">
+              My Resume
+            </Link>
             {user?.role === "admin" && (
               <Link href="/dashboard/admin/analytics" className="hover:text-foreground transition-colors text-primary font-bold">
                 Admin Panel
