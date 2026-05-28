@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import api from "@/lib/api";
 import { 
   Loader2, Play, ToggleLeft, ToggleRight, CheckCircle2, 
@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { motion, AnimatePresence } from "framer-motion";
+import { socket } from "@/lib/socket";
 
 interface CronLog {
   _id: string;
@@ -61,6 +62,15 @@ export default function AdminCronPage() {
 
   useEffect(() => {
     loadData();
+
+    // Listen for real-time cron completions
+    socket.on("cron:status", () => {
+      loadData();
+    });
+
+    return () => {
+      socket.off("cron:status");
+    };
   }, []);
 
   const handleToggleCron = async () => {
@@ -274,8 +284,8 @@ export default function AdminCronPage() {
                   cronLogs.map((log) => {
                     const isExpanded = expandedLogId === log._id;
                     return (
-                      <>
-                        <tr key={log._id} className="hover:bg-muted/15 transition text-xs font-semibold">
+                      <Fragment key={log._id}>
+                        <tr className="hover:bg-muted/15 transition text-xs font-semibold">
                           <td className="p-4 flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-muted-foreground/60" />
                             {new Date(log.runAt).toLocaleString()}
@@ -336,7 +346,7 @@ export default function AdminCronPage() {
                             </td>
                           </tr>
                         )}
-                      </>
+                      </Fragment>
                     );
                   })
                 )}

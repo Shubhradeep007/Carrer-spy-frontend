@@ -7,11 +7,11 @@ import { socket } from "@/lib/socket";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { CompanyChart } from "@/components/CompanyChart";
-import { Loader2, Plus, Trash2, Building, Activity, ShieldAlert, Target } from "lucide-react";
+import { Loader2, Plus, Trash2, Building, Activity, ShieldAlert, Target, Bell, BellOff } from "lucide-react";
 
 export default function DashboardPage() {
   const { user, isAuthenticated } = useAuthStore();
-  const { companies, isLoading, fetchCompanies, addCompany, deleteCompany, updateSignalRealtime } = useSpyStore();
+  const { companies, isLoading, fetchCompanies, addCompany, deleteCompany, toggleAlert, updateSignalRealtime } = useSpyStore();
   
   const [newCompany, setNewCompany] = useState({ companyName: "", targetRole: "", careerUrl: "", githubOrg: "" });
 
@@ -39,6 +39,14 @@ export default function DashboardPage() {
     await addCompany(newCompany);
     setNewCompany({ companyName: "", targetRole: "", careerUrl: "", githubOrg: "" });
   };
+
+  if (isAuthenticated === null) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -123,13 +131,26 @@ export default function DashboardPage() {
 
                   <CompanyChart companyId={c._id} />
 
-                  <button 
-                    onClick={() => deleteCompany(c._id)}
-                    className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity bg-background rounded-full border shadow-sm"
-                    title="Remove from watchlist"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="absolute top-4 right-4 flex gap-1">
+                    <button
+                      onClick={() => toggleAlert(c._id)}
+                      className={`p-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full border shadow-sm ${
+                        c.alertActive
+                          ? "text-primary bg-primary/10 border-primary/20"
+                          : "text-muted-foreground bg-background border-border hover:text-primary"
+                      }`}
+                      title={c.alertActive ? "Alerts ON – click to disable" : "Alerts OFF – click to enable"}
+                    >
+                      {c.alertActive ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+                    </button>
+                    <button
+                      onClick={() => deleteCompany(c._id)}
+                      className="p-2 text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity bg-background rounded-full border shadow-sm"
+                      title="Remove from watchlist"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

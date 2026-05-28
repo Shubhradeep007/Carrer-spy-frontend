@@ -22,6 +22,7 @@ interface SpyState {
   fetchCompanies: () => Promise<void>;
   addCompany: (companyData: any) => Promise<void>;
   deleteCompany: (id: string) => Promise<void>;
+  toggleAlert: (id: string) => Promise<void>;
   updateSignalRealtime: (companyId: string, signalData: any) => void;
 }
 
@@ -59,6 +60,19 @@ export const useSpyStore = create<SpyState>((set) => ({
       }));
     } catch (error) {
       console.error("Failed to delete company", error);
+    }
+  },
+
+  toggleAlert: async (id) => {
+    try {
+      const { data } = await api.patch(`/companies/${id}`);
+      set((state) => ({
+        companies: state.companies.map((c) =>
+          c._id === id ? { ...c, alertActive: data.alertActive } : c
+        )
+      }));
+    } catch (error) {
+      console.error("Failed to toggle alert", error);
     }
   },
 

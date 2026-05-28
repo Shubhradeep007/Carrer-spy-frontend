@@ -26,24 +26,25 @@ const sidebarItems: SidebarItem[] = [
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, isAuthenticated, isLoading } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
-  const [authorized, setAuthorized] = useState(false);
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!isLoading) {
-      if (!isAuthenticated) {
-        router.push("/login");
-      } else if (user?.role !== "admin") {
+    if (isAuthenticated === false) {
+      router.push("/");
+    } else if (isAuthenticated === true) {
+      if (user?.role !== "admin") {
         setAuthorized(false);
       } else {
         setAuthorized(true);
       }
     }
-  }, [user, isAuthenticated, isLoading, router]);
+  }, [user, isAuthenticated, router]);
 
-  if (isLoading || (!authorized && !isLoading && isAuthenticated === null)) {
+  // Show loading while auth state is pending (null)
+  if (isAuthenticated === null || authorized === null) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -52,7 +53,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (!authorized && !isLoading) {
+  if (!authorized) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
         <div className="h-16 w-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4">

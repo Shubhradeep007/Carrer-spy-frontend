@@ -12,17 +12,18 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  isAuthenticated: boolean;
+  isAuthenticated: boolean | null;
   isLoading: boolean;
   login: (credentials: any) => Promise<void>;
   signup: (userData: any) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  isAuthenticated: false,
+  isAuthenticated: null,
   isLoading: false,
 
   login: async (credentials) => {
@@ -58,7 +59,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   checkAuth: async () => {
     const token = Cookies.get("token") || localStorage.getItem("token");
-    if (!token) return;
+    if (!token) {
+      set({ isAuthenticated: false, isLoading: false });
+      return;
+    }
     
     set({ isLoading: true });
     try {
@@ -68,6 +72,17 @@ export const useAuthStore = create<AuthState>((set) => ({
       Cookies.remove("token");
       localStorage.removeItem("token");
       set({ user: null, isAuthenticated: false, isLoading: false });
+    }
+  },
+
+  forgotPassword: async (email) => {
+    set({ isLoading: true });
+    try {
+      await api.post("/auth/forgot-password", { email });
+      set({ isLoading: false });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
     }
   },
 }));

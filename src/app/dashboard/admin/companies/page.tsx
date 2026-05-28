@@ -36,7 +36,7 @@ export default function AdminCompaniesPage() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-tr from-foreground to-muted-foreground bg-clip-text text-transparent">
-             ड्रीम Company Watcher Tracker
+           Dream Company Watcher Tracker
           </h1>
           <p className="text-muted-foreground mt-1">
             Analyze target company popularity, active watchers, signal collection pipelines, and automated outreach triggers.
