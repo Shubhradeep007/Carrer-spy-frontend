@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Loader2 } from "lucide-react";
+import { socket } from "@/lib/socket";
 
 export function CompanyChart({ companyId }: { companyId: string }) {
   const [data, setData] = useState<any[]>([]);
@@ -22,7 +23,21 @@ export function CompanyChart({ companyId }: { companyId: string }) {
         setLoading(false);
       }
     };
+    
     fetchSignals();
+
+    // Listen for updates to dynamically refresh the chart
+    const handleUpdate = (update: any) => {
+      if (update.companyId === companyId) {
+        fetchSignals();
+      }
+    };
+
+    socket.on("signal:updated", handleUpdate);
+    
+    return () => {
+      socket.off("signal:updated", handleUpdate);
+    };
   }, [companyId]);
 
   if (loading) return <div className="h-32 flex items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
