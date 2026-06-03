@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MessageSquare, X, Send, Bot, User, Loader2, History, Plus, LifeBuoy, AlertCircle, ArrowLeft, Check, CheckCheck } from "lucide-react";
+import { MessageSquare, X, Send, Bot, User, Loader2, History, Plus, LifeBuoy, AlertCircle, ArrowLeft, Check, CheckCheck, Sparkles } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
@@ -224,8 +224,6 @@ export function ChatWidget() {
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
-        
-        // SSE formatting has lines like `data: { ... }\n\n`
         const lines = chunk.split("\n");
         for (const line of lines) {
           if (line.startsWith("data: ")) {
@@ -236,7 +234,6 @@ export function ChatWidget() {
 
               if (parsed.text) {
                 fullText += parsed.text;
-                // Update the last assistant message with cumulative streamed response
                 setMessages((prev) => {
                   const copy = [...prev];
                   if (copy.length > 0) {
@@ -255,13 +252,12 @@ export function ChatWidget() {
                 throw new Error(parsed.error);
               }
             } catch (e) {
-              // Ignore partial parsing errors or json decode failures from stream split
+              // Ignore split stream parsing errors
             }
           }
         }
       }
 
-      // Re-load list of sessions to reflect the updated or new session name
       loadChatSessions();
 
     } catch (error: any) {
@@ -302,11 +298,9 @@ export function ChatWidget() {
       const messagesRes = await api.get(`/support/conversations/${ticketId}/messages`);
       setSupportMessages(messagesRes.data);
 
-      // Mark read
       await api.patch(`/support/conversations/${ticketId}/read`);
-      loadSupportTickets(); // Refresh counts
+      loadSupportTickets();
 
-      // Emit read receipt to admin
       socket.emit("support:read", {
         conversationId: ticketId,
         readerRole: "user",
@@ -324,7 +318,6 @@ export function ChatWidget() {
     const content = supportInput.trim();
     setSupportInput("");
 
-    // Emit stop typing
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
@@ -385,7 +378,6 @@ export function ChatWidget() {
       setTicketInitialMsg("");
       setShowCreateTicket(false);
       
-      // Load and open the newly created ticket
       await loadSupportTickets();
       selectTicket(res.data.conversation._id);
     } catch (err) {
@@ -395,7 +387,6 @@ export function ChatWidget() {
     }
   };
 
-  // Determine user unread status
   const supportHasUnread = supportConversations.some((c) => !c.isReadByUser);
 
   if (!isAuthenticated) return null;
@@ -405,7 +396,7 @@ export function ChatWidget() {
       {/* Floating Action Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-6 right-6 h-14 w-14 bg-gradient-to-tr from-primary to-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 z-50 group hover:shadow-indigo-500/20`}
+        className="fixed bottom-6 right-6 h-14 w-14 bg-gradient-to-tr from-primary to-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 z-50 group hover:shadow-indigo-500/20"
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
@@ -442,37 +433,37 @@ export function ChatWidget() {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 350 }}
-            className="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-2rem)] bg-card border border-border/80 shadow-2xl rounded-2xl z-50 flex flex-col overflow-hidden backdrop-blur-md"
+            className="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-2rem)] glass-panel bg-card/75 border border-border/30 shadow-2xl rounded-2xl z-50 flex flex-col overflow-hidden backdrop-blur-md"
             style={{ height: "550px", maxHeight: "80vh" }}
           >
             {/* Header Tabs */}
-            <div className="flex border-b border-border bg-muted/40 p-1.5 gap-1 shrink-0">
+            <div className="flex border-b border-border/40 bg-muted/30 p-1.5 gap-1 shrink-0">
               <button
                 onClick={() => {
                   setActiveTab("ai");
                   setShowHistory(false);
                 }}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-200 ${
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-200 ${
                   activeTab === "ai"
-                    ? "bg-background text-primary shadow-sm border border-border/30"
+                    ? "bg-background text-primary shadow-sm border border-border/20"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 }`}
               >
-                <Bot className="h-4 w-4" />
+                <Bot className="h-4 w-4 text-cyan-400" />
                 AI Career Agent
               </button>
               <button
                 onClick={() => setActiveTab("support")}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-200 relative ${
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-200 relative ${
                   activeTab === "support"
-                    ? "bg-background text-primary shadow-sm border border-border/30"
+                    ? "bg-background text-primary shadow-sm border border-border/20"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 }`}
               >
-                <LifeBuoy className="h-4 w-4" />
+                <LifeBuoy className="h-4 w-4 text-amber-500" />
                 Support Chat
                 {supportHasUnread && (
-                  <span className="h-2 w-2 rounded-full bg-red-500" />
+                  <span className="h-2 w-2 rounded-full bg-red-500 ml-1 animate-pulse" />
                 )}
               </button>
             </div>
@@ -481,23 +472,23 @@ export function ChatWidget() {
             {activeTab === "ai" && (
               <div className="flex-1 flex flex-col overflow-hidden relative">
                 {/* AI Sub-Header / Controls */}
-                <div className="px-4 py-2 bg-muted/20 border-b border-border/60 flex justify-between items-center text-xs shrink-0">
-                  <span className="font-semibold text-muted-foreground">
-                    {currentSessionId ? "Active AI Session" : "New AI Conversation"}
+                <div className="px-4 py-2 bg-muted/10 border-b border-border/30 flex justify-between items-center text-[10px] shrink-0 font-bold uppercase tracking-wider text-muted-foreground">
+                  <span>
+                    {currentSessionId ? "Active Intel Session" : "New AI Conversation"}
                   </span>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setShowHistory(!showHistory)}
-                      className="flex items-center gap-1 py-1 px-2 rounded-md border border-border hover:bg-muted text-muted-foreground transition"
+                      className="flex items-center gap-1 py-1 px-2 rounded-lg border border-border/30 hover:bg-muted/50 text-muted-foreground transition font-bold"
                     >
-                      <History className="h-3.5 w-3.5" />
+                      <History className="h-3 w-3" />
                       History
                     </button>
                     <button
                       onClick={startNewSession}
-                      className="flex items-center gap-1 py-1 px-2 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition"
+                      className="flex items-center gap-1 py-1 px-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition font-bold"
                     >
-                      <Plus className="h-3.5 w-3.5" />
+                      <Plus className="h-3 w-3" />
                       New
                     </button>
                   </div>
@@ -510,10 +501,10 @@ export function ChatWidget() {
                       initial={{ opacity: 0, x: 50 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 50 }}
-                      className="absolute inset-0 bg-background/95 z-10 flex flex-col p-4 overflow-y-auto"
+                      className="absolute inset-0 bg-background/95 backdrop-blur-md z-10 flex flex-col p-4 overflow-y-auto"
                     >
                       <div className="flex justify-between items-center mb-4 shrink-0">
-                        <h4 className="text-sm font-semibold flex items-center gap-2">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
                           <History className="h-4 w-4 text-primary" />
                           Conversation History
                         </h4>
@@ -532,8 +523,7 @@ export function ChatWidget() {
                       ) : sessions.length === 0 ? (
                         <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
                           <Bot className="h-10 w-10 text-muted-foreground/30 mb-2" />
-                          <p className="text-sm text-muted-foreground font-medium">No previous sessions found</p>
-                          <p className="text-xs text-muted-foreground/75 mt-1">Start chatting with Gemini now!</p>
+                          <p className="text-sm text-muted-foreground font-semibold">No history found</p>
                         </div>
                       ) : (
                         <div className="space-y-2">
@@ -546,19 +536,19 @@ export function ChatWidget() {
                               <button
                                 key={s._id}
                                 onClick={() => selectSession(s._id)}
-                                className={`w-full text-left p-3 rounded-xl border transition flex flex-col gap-1 ${
+                                className={`w-full text-left p-3.5 rounded-xl border transition flex flex-col gap-1 ${
                                   s._id === currentSessionId
                                     ? "border-primary bg-primary/5"
-                                    : "border-border hover:bg-muted/50"
+                                    : "border-border/30 hover:bg-muted/30"
                                 }`}
                               >
-                                <span className="text-xs font-semibold text-foreground/90 truncate">
-                                  {firstMsg?.content || "Career Assistant Session"}
+                                <span className="text-xs font-bold text-foreground/90 truncate">
+                                  {firstMsg?.content || "Career Agent Session"}
                                 </span>
-                                <span className="text-[11px] text-muted-foreground line-clamp-1">
+                                <span className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
                                   {preview}
                                 </span>
-                                <span className="text-[9px] text-muted-foreground/60 mt-1">
+                                <span className="text-[9px] text-muted-foreground/50 mt-1">
                                   {new Date(s.updatedAt).toLocaleString()}
                                 </span>
                               </button>
@@ -573,17 +563,19 @@ export function ChatWidget() {
                 {/* AI Message Stream list */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                   {messages.map((msg, idx) => (
-                    <div
+                    <motion.div
                       key={idx}
-                      className={`flex gap-2 max-w-[85%] ${
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`flex gap-2.5 max-w-[85%] ${
                         msg.role === "user" ? "ml-auto flex-row-reverse" : ""
                       }`}
                     >
                       <div
-                        className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 shadow-sm ${
+                        className={`h-8 w-8 rounded-xl flex items-center justify-center shrink-0 shadow-md ${
                           msg.role === "user"
                             ? "bg-gradient-to-tr from-primary to-indigo-600 text-white"
-                            : "bg-indigo-500/10 text-primary"
+                            : "bg-primary/10 text-primary border border-primary/10"
                         }`}
                       >
                         {msg.role === "user" ? (
@@ -593,10 +585,10 @@ export function ChatWidget() {
                         )}
                       </div>
                       <div
-                        className={`p-3.5 rounded-2xl text-sm leading-relaxed border ${
+                        className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed border ${
                           msg.role === "user"
-                            ? "bg-primary text-white border-primary/20 rounded-tr-none shadow-md"
-                            : "bg-muted/40 border-border/50 rounded-tl-none text-foreground/90"
+                            ? "bg-primary text-white border-primary/20 rounded-tr-none shadow-md shadow-primary/5"
+                            : "bg-muted/30 border-border/30 rounded-tl-none text-foreground/90"
                         }`}
                       >
                         {msg.content === "" && isAiStreaming && idx === messages.length - 1 ? (
@@ -608,47 +600,38 @@ export function ChatWidget() {
                           <span className="whitespace-pre-line">{msg.content}</span>
                         )}
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
-                  {isAiStreaming &&
-                    messages[messages.length - 1]?.content !== "" && (
-                      <div className="flex gap-2 max-w-[85%]">
-                        <div className="h-8 w-8 rounded-full bg-indigo-500/10 text-primary flex items-center justify-center shrink-0">
-                          <Bot className="h-4 w-4 animate-pulse" />
-                        </div>
-                        <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/50 rounded-tl-none text-sm flex items-center gap-1">
-                          <span
-                            className="w-1.5 h-1.5 bg-primary/75 rounded-full animate-bounce"
-                            style={{ animationDelay: "0ms" }}
-                          />
-                          <span
-                            className="w-1.5 h-1.5 bg-primary/75 rounded-full animate-bounce"
-                            style={{ animationDelay: "150ms" }}
-                          />
-                          <span
-                            className="w-1.5 h-1.5 bg-primary/75 rounded-full animate-bounce"
-                            style={{ animationDelay: "300ms" }}
-                          />
-                        </div>
+                  
+                  {isAiStreaming && messages[messages.length - 1]?.content !== "" && (
+                    <div className="flex gap-2.5 max-w-[85%]">
+                      <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <Bot className="h-4 w-4 animate-pulse" />
                       </div>
-                    )}
+                      <div className="p-3.5 rounded-2xl bg-muted/30 border border-border/30 rounded-tl-none text-xs flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                        <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                      </div>
+                    </div>
+                  )}
                   <div ref={messagesEndRef} />
                 </div>
 
                 {/* AI Input Form */}
-                <div className="p-3 border-t border-border bg-card shrink-0">
+                <div className="p-3 border-t border-border/40 bg-card/40 shrink-0">
                   <form onSubmit={handleSendAi} className="flex gap-2">
                     <Input
-                      placeholder="Ask about target companies, score alerts..."
+                      placeholder="Ask about score alerts, target companies..."
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       disabled={isAiStreaming}
-                      className="rounded-full bg-muted/30 border-border focus-visible:ring-1"
+                      className="rounded-full bg-background/50 border-border/40 focus-visible:ring-1 focus-visible:ring-primary h-9 text-xs"
                     />
                     <Button
                       type="submit"
                       size="icon"
-                      className="rounded-full shrink-0 bg-primary hover:bg-primary/95 text-white"
+                      className="rounded-full shrink-0 bg-primary hover:bg-primary/95 text-white h-9 w-9 shadow-md"
                       disabled={!inputMessage.trim() || isAiStreaming}
                     >
                       <Send className="h-4 w-4" />
@@ -665,35 +648,28 @@ export function ChatWidget() {
                   /* active support session messages list */
                   <div className="flex-grow flex flex-col overflow-hidden">
                     {/* Header bar */}
-                    <div className="px-3 py-2 bg-muted/30 border-b border-border/60 flex items-center gap-2 shrink-0 text-xs">
+                    <div className="px-3 py-2 bg-muted/20 border-b border-border/30 flex items-center gap-2 shrink-0 text-[10px] font-bold uppercase tracking-wider">
                       <button
                         onClick={() => {
                           setActiveTicketId(null);
                           loadSupportTickets();
                         }}
-                        className="p-1 rounded-md hover:bg-muted text-muted-foreground flex items-center gap-1 transition"
+                        className="py-1 px-2 rounded-lg border border-border/30 hover:bg-muted/50 text-muted-foreground flex items-center gap-1 transition"
                       >
-                        <ArrowLeft className="h-4 w-4" />
+                        <ArrowLeft className="h-3 w-3" />
                         Inbox
                       </button>
-                      <span className="font-semibold text-foreground/80 truncate">
-                        {
-                          supportConversations.find((c) => c._id === activeTicketId)
-                            ?.subject
-                        }
+                      <span className="font-bold text-foreground/80 truncate">
+                        {supportConversations.find((c) => c._id === activeTicketId)?.subject}
                       </span>
                       <span
-                        className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                          supportConversations.find((c) => c._id === activeTicketId)
-                            ?.status === "resolved"
+                        className={`ml-auto px-2 py-0.5 rounded-full text-[8px] font-extrabold uppercase tracking-widest ${
+                          supportConversations.find((c) => c._id === activeTicketId)?.status === "resolved"
                             ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
                             : "bg-amber-500/10 text-amber-500 border border-amber-500/20"
                         }`}
                       >
-                        {
-                          supportConversations.find((c) => c._id === activeTicketId)
-                            ?.status
-                        }
+                        {supportConversations.find((c) => c._id === activeTicketId)?.status}
                       </span>
                     </div>
 
@@ -704,15 +680,15 @@ export function ChatWidget() {
                         return (
                           <div
                             key={msg._id || idx}
-                            className={`flex gap-2 max-w-[85%] ${
+                            className={`flex gap-2.5 max-w-[85%] ${
                               isSelf ? "ml-auto flex-row-reverse" : ""
                             }`}
                           >
                             <div
-                              className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 shadow-sm ${
+                              className={`h-8 w-8 rounded-xl flex items-center justify-center shrink-0 shadow-md ${
                                 isSelf
                                   ? "bg-gradient-to-tr from-primary to-indigo-600 text-white"
-                                  : "bg-amber-500/10 text-amber-500"
+                                  : "bg-amber-500/10 text-amber-500 border border-amber-500/10"
                               }`}
                             >
                               {isSelf ? (
@@ -723,19 +699,18 @@ export function ChatWidget() {
                             </div>
                             <div className="flex flex-col gap-1">
                               <div
-                                className={`p-3.5 rounded-2xl text-sm border ${
+                                className={`p-3.5 rounded-2xl text-xs sm:text-sm border ${
                                   isSelf
-                                    ? "bg-primary text-white border-primary/20 rounded-tr-none shadow-md"
-                                    : "bg-muted/40 border-border/50 rounded-tl-none text-foreground/90"
+                                    ? "bg-primary text-white border-primary/20 rounded-tr-none shadow-md shadow-primary/5"
+                                    : "bg-muted/30 border-border/30 rounded-tl-none text-foreground/90"
                                 }`}
                               >
                                 <span>{msg.content}</span>
                               </div>
-                              {/* Read Receipts */}
                               {isSelf && idx === supportMessages.length - 1 && (
-                                <div className="text-[10px] text-muted-foreground/60 flex items-center justify-end gap-1 mt-0.5">
+                                <div className="text-[9px] text-muted-foreground/60 flex items-center justify-end gap-1 mt-0.5">
                                   {msg.isRead ? (
-                                    <span className="flex items-center gap-0.5 text-indigo-500">
+                                    <span className="flex items-center gap-0.5 text-cyan-400 font-semibold">
                                       <CheckCheck className="h-3 w-3" />
                                       Read
                                     </span>
@@ -753,11 +728,11 @@ export function ChatWidget() {
                       })}
 
                       {adminIsTyping && (
-                        <div className="flex gap-2 max-w-[85%]">
-                          <div className="h-8 w-8 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+                        <div className="flex gap-2.5 max-w-[85%]">
+                          <div className="h-8 w-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
                             <LifeBuoy className="h-4 w-4" />
                           </div>
-                          <div className="p-3 rounded-2xl bg-muted rounded-tl-sm text-sm flex items-center gap-1 border border-border/30">
+                          <div className="p-3 rounded-2xl bg-muted/30 border border-border/30 rounded-tl-none text-xs flex items-center gap-1">
                             <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                             <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
                             <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
@@ -768,10 +743,9 @@ export function ChatWidget() {
                     </div>
 
                     {/* Footer sending container */}
-                    <div className="p-3 border-t border-border bg-card shrink-0">
-                      {supportConversations.find((c) => c._id === activeTicketId)
-                        ?.status === "resolved" ? (
-                        <div className="p-2 bg-muted/50 rounded-xl text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+                    <div className="p-3 border-t border-border/40 bg-card/40 shrink-0">
+                      {supportConversations.find((c) => c._id === activeTicketId)?.status === "resolved" ? (
+                        <div className="p-2 bg-muted/30 rounded-xl text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
                           <AlertCircle className="h-4 w-4 text-emerald-500" />
                           This support ticket is marked as Resolved.
                         </div>
@@ -781,12 +755,12 @@ export function ChatWidget() {
                             placeholder="Type a support reply..."
                             value={supportInput}
                             onChange={handleSupportInputChange}
-                            className="rounded-full bg-muted/30 border-border focus-visible:ring-1"
+                            className="rounded-full bg-background/50 border-border/40 focus-visible:ring-1 focus-visible:ring-primary h-9 text-xs"
                           />
                           <Button
                             type="submit"
                             size="icon"
-                            className="rounded-full shrink-0 bg-primary hover:bg-primary/95 text-white"
+                            className="rounded-full shrink-0 bg-primary hover:bg-primary/95 text-white h-9 w-9 shadow-md"
                             disabled={!supportInput.trim()}
                           >
                             <Send className="h-4 w-4" />
@@ -799,7 +773,7 @@ export function ChatWidget() {
                   /* Create New Ticket Panel Form */
                   <div className="flex-1 flex flex-col p-4 overflow-y-auto">
                     <div className="flex justify-between items-center mb-4 shrink-0">
-                      <h4 className="text-sm font-semibold flex items-center gap-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
                         <LifeBuoy className="h-4 w-4 text-primary" />
                         Open Support Ticket
                       </h4>
@@ -813,7 +787,7 @@ export function ChatWidget() {
 
                     <form onSubmit={handleCreateTicketSubmit} className="flex-1 flex flex-col gap-4">
                       <div>
-                        <label className="text-xs font-semibold text-muted-foreground block mb-1">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1.5">
                           Subject / Topic
                         </label>
                         <Input
@@ -821,10 +795,11 @@ export function ChatWidget() {
                           placeholder="e.g. Resume analysis fails, Alert delays"
                           value={ticketSubject}
                           onChange={(e) => setTicketSubject(e.target.value)}
+                          className="bg-background/50 rounded-xl"
                         />
                       </div>
                       <div className="flex-1 flex flex-col">
-                        <label className="text-xs font-semibold text-muted-foreground block mb-1">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1.5">
                           Detailed Message
                         </label>
                         <textarea
@@ -832,13 +807,13 @@ export function ChatWidget() {
                           placeholder="Explain what is going wrong or how our admins can assist you..."
                           value={ticketInitialMsg}
                           onChange={(e) => setTicketInitialMsg(e.target.value)}
-                          className="flex-1 min-h-[120px] rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                          className="flex-1 min-h-[120px] rounded-xl border border-border bg-background/50 px-3 py-2 text-xs sm:text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary"
                         />
                       </div>
                       <Button
                         type="submit"
                         disabled={creatingTicket}
-                        className="w-full mt-2 font-semibold"
+                        className="w-full mt-2 font-bold text-xs uppercase bg-primary hover:bg-primary/95 text-white h-10 rounded-xl shadow-md shadow-primary/10"
                       >
                         {creatingTicket ? (
                           <>
@@ -854,14 +829,14 @@ export function ChatWidget() {
                 ) : (
                   /* Conversations List Inbox View */
                   <div className="flex-grow flex flex-col overflow-hidden">
-                    <div className="p-4 border-b border-border/60 flex justify-between items-center shrink-0">
-                      <span className="text-sm font-semibold text-foreground/80">
+                    <div className="p-4 border-b border-border/40 flex justify-between items-center shrink-0">
+                      <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                         Support Inbox
                       </span>
                       <Button
                         size="sm"
                         onClick={() => setShowCreateTicket(true)}
-                        className="gap-1 text-xs font-semibold rounded-lg"
+                        className="gap-1 text-xs font-bold rounded-lg h-8 bg-primary hover:bg-primary/95 text-white px-3"
                       >
                         <Plus className="h-3.5 w-3.5" />
                         Create Ticket
@@ -873,12 +848,12 @@ export function ChatWidget() {
                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
                       </div>
                     ) : supportConversations.length === 0 ? (
-                      <div className="flex-grow flex flex-col items-center justify-center text-center p-6">
-                        <LifeBuoy className="h-10 w-10 text-muted-foreground/30 mb-2" />
-                        <p className="text-sm text-muted-foreground font-medium">
+                      <div className="flex-grow flex flex-col items-center justify-center text-center p-6 bg-muted/5">
+                        <LifeBuoy className="h-10 w-10 text-muted-foreground/30 mb-3" />
+                        <p className="text-sm text-muted-foreground font-semibold">
                           No active support tickets
                         </p>
-                        <p className="text-xs text-muted-foreground/75 mt-1 max-w-[200px]">
+                        <p className="text-[10px] text-muted-foreground/70 mt-1.5 max-w-[200px] leading-relaxed">
                           Need help with watched companies, API rates, or outreach? Drop a message to admins.
                         </p>
                       </div>
@@ -890,19 +865,19 @@ export function ChatWidget() {
                             onClick={() => selectTicket(c._id)}
                             className={`w-full text-left p-3.5 rounded-xl border transition flex flex-col gap-1.5 relative ${
                               !c.isReadByUser
-                                ? "border-primary bg-primary/[0.03] shadow-sm font-semibold"
-                                : "border-border hover:bg-muted/50"
+                                ? "border-primary bg-primary/[0.03] shadow-sm font-bold"
+                                : "border-border/30 hover:bg-muted/30"
                             }`}
                           >
                             {!c.isReadByUser && (
                               <span className="absolute top-4 right-4 h-2 w-2 rounded-full bg-primary" />
                             )}
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-foreground/90 truncate max-w-[70%]">
+                              <span className="text-xs font-bold text-foreground/90 truncate max-w-[70%]">
                                 {c.subject}
                               </span>
                               <span
-                                className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                                className={`px-2 py-0.5 rounded-full text-[8px] font-extrabold uppercase tracking-widest ${
                                   c.status === "resolved"
                                     ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/15"
                                     : "bg-amber-500/10 text-amber-500 border border-amber-500/15"
@@ -911,7 +886,7 @@ export function ChatWidget() {
                                 {c.status}
                               </span>
                             </div>
-                            <span className="text-[9px] text-muted-foreground/60">
+                            <span className="text-[9px] text-muted-foreground/50">
                               Last Activity: {new Date(c.lastMessageAt).toLocaleString()}
                             </span>
                           </button>

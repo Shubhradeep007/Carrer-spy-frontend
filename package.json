@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",
+    "@types/three": "^0.184.1",
     "axios": "^1.16.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
@@ -23,6 +24,7 @@
     "socket.io-client": "^4.8.3",
     "swr": "^2.4.1",
     "tailwind-merge": "^3.6.0",
+    "three": "^0.184.0",
     "zustand": "^5.0.13"
   },
   "devDependencies": {
