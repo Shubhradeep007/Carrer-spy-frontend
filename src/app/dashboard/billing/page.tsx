@@ -9,6 +9,7 @@ import {
   Check, ShieldAlert, Loader2, ArrowLeft, CreditCard, HelpCircle
 } from "lucide-react";
 import Link from "next/link";
+import { Footer } from "@/components/Footer";
 
 interface Plan {
   id: "free" | "basic" | "pro";
@@ -269,8 +270,8 @@ function BillingPageContent() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-background cyber-grid py-12">
-      <div className="container mx-auto px-4 max-w-5xl space-y-8">
+    <div className="w-full min-h-screen bg-background cyber-grid flex flex-col justify-between">
+      <div className="container mx-auto px-4 max-w-5xl space-y-8 py-12 flex-1">
         
         {/* Header */}
         <header className="space-y-4">
@@ -406,12 +407,13 @@ function BillingPageContent() {
         </section>
 
         {/* Bottom support links */}
-        <footer className="text-center pt-8 text-[11px] text-muted-foreground/80 flex justify-center items-center gap-1.5 font-medium">
+        <div className="text-center pt-8 text-[11px] text-muted-foreground/80 flex justify-center items-center gap-1.5 font-medium">
           <HelpCircle className="h-3.5 w-3.5" />
           <span>Demo checkout simulation. No charges will be applied.</span>
-        </footer>
+        </div>
 
       </div>
+      <Footer />
     </div>
   );
 }
