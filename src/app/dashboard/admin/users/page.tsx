@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { 
   Loader2, Search, Trash2, ShieldAlert, KeyRound, 
-  Building, Bell, RefreshCw, X, ShieldCheck, Mail, Calendar, Eye
+  Building, Bell, RefreshCw, X, ShieldCheck, Mail, Calendar, Eye, CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -119,6 +119,30 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleCancelSubscription = async (userId: string) => {
+    if (!confirm("Are you sure you want to cancel this user's subscription? Their plan will immediately downgrade to Free, and they will lose access to premium quotas.")) return;
+
+    try {
+      setActionLoading(`cancel-sub-${userId}`);
+      const res = await api.patch(`/admin/users/${userId}/cancel-subscription`);
+      setSuccessMessage(res.data.message);
+      
+      // Update local state
+      setUsers(prev => prev.map(u => u._id === userId ? { ...u, subscriptionStatus: "free" } : u));
+      if (userDetails && userDetails.user._id === userId) {
+        setUserDetails((prev: any) => ({
+          ...prev,
+          user: { ...prev.user, subscriptionStatus: "free", razorpayPaymentId: null, razorpayOrderId: null }
+        }));
+      }
+    } catch (err) {
+      console.error("Failed to cancel subscription:", err);
+    } finally {
+      setActionLoading(null);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    }
+  };
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 relative min-h-screen">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -179,6 +203,7 @@ export default function AdminUsersPage() {
             <thead className="bg-muted/30 border-b border-border/60 text-xs uppercase tracking-wider font-bold text-muted-foreground">
               <tr>
                 <th className="p-4 font-semibold">User details</th>
+                <th className="p-4 font-semibold">Plan tier</th>
                 <th className="p-4 font-semibold">Targets Watchlist</th>
                 <th className="p-4 font-semibold">Alerts Sent</th>
                 <th className="p-4 font-semibold">Account State</th>
@@ -188,14 +213,14 @@ export default function AdminUsersPage() {
             <tbody className="divide-y divide-border/50">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="p-20 text-center">
+                  <td colSpan={6} className="p-20 text-center">
                     <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
                     <span className="text-xs text-muted-foreground mt-2 block animate-pulse">Scanning users database...</span>
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-12 text-center text-muted-foreground text-sm font-medium">
+                  <td colSpan={6} className="p-12 text-center text-muted-foreground text-sm font-medium">
                     No users match search criterion.
                   </td>
                 </tr>
@@ -210,6 +235,17 @@ export default function AdminUsersPage() {
                           {u.email}
                         </span>
                       </div>
+                    </td>
+                    <td className="p-4">
+                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
+                        u.subscriptionStatus === "pro"
+                          ? "bg-cyan-500/10 text-cyan-500 border border-cyan-500/20"
+                          : u.subscriptionStatus === "basic"
+                          ? "bg-primary/10 text-primary border border-primary/20"
+                          : "bg-muted text-muted-foreground border border-border"
+                      }`}>
+                        {u.subscriptionStatus || "free"}
+                      </span>
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-1 text-foreground/80 font-semibold">
@@ -261,6 +297,22 @@ export default function AdminUsersPage() {
                             <ShieldAlert className="h-4 w-4" />
                           )}
                         </Button>
+                        {u.subscriptionStatus && u.subscriptionStatus !== "free" && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            disabled={actionLoading !== null}
+                            onClick={() => handleCancelSubscription(u._id)} 
+                            title="Cancel active subscription"
+                            className="rounded-lg h-8 w-8 text-rose-500 hover:bg-rose-500/10"
+                          >
+                            {actionLoading === `cancel-sub-${u._id}` ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <CreditCard className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
                         <Button 
                           variant="ghost" 
                           size="icon" 
@@ -382,6 +434,23 @@ export default function AdminUsersPage() {
                             <Calendar className="h-3.5 w-3.5" />
                             Joined on {new Date(userDetails.user.createdAt).toLocaleDateString()}
                           </span>
+                          <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1.5 mt-1">
+                            <CreditCard className="h-3.5 w-3.5" />
+                            Plan:{" "}
+                            <span className={`font-bold uppercase ${
+                              userDetails.user.subscriptionStatus === "pro" ? "text-cyan-500" :
+                              userDetails.user.subscriptionStatus === "basic" ? "text-primary" :
+                              "text-muted-foreground"
+                            }`}>
+                              {userDetails.user.subscriptionStatus || "free"}
+                            </span>
+                          </span>
+                          {userDetails.user.subscriptionStatus && userDetails.user.subscriptionStatus !== "free" && (
+                            <div className="text-[10px] text-muted-foreground/80 font-mono mt-2 flex flex-col gap-0.5 bg-muted/45 p-2 rounded-lg border border-border/40">
+                              <span>Pay ID: {userDetails.user.razorpayPaymentId || "mock_payment"}</span>
+                              <span>Ord ID: {userDetails.user.razorpayOrderId || "mock_order"}</span>
+                            </div>
+                          )}
                         </div>
                         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
                           userDetails.user.isBanned 
@@ -392,21 +461,35 @@ export default function AdminUsersPage() {
                         </span>
                       </div>
                       
-                      <div className="flex gap-2.5 mt-2">
+                      <div className="flex gap-2.5 mt-2 flex-wrap">
                         <Button 
                           size="sm"
                           onClick={() => handleBanToggle(userDetails.user._id)}
-                          className={`font-semibold text-xs rounded-xl flex-1 ${
+                          className={`font-semibold text-xs rounded-xl flex-1 min-w-[120px] ${
                             userDetails.user.isBanned ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-amber-600 hover:bg-amber-700 text-white'
                           }`}
                         >
                           {userDetails.user.isBanned ? 'Unban Account' : 'Restrict Account'}
                         </Button>
+                        {userDetails.user.subscriptionStatus && userDetails.user.subscriptionStatus !== "free" && (
+                          <Button 
+                            size="sm"
+                            disabled={actionLoading !== null}
+                            onClick={() => handleCancelSubscription(userDetails.user._id)}
+                            className="font-semibold text-xs rounded-xl bg-rose-600 hover:bg-rose-700 text-white flex-1 min-w-[140px]"
+                          >
+                            {actionLoading === `cancel-sub-${userDetails.user._id}` ? (
+                              <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                            ) : (
+                              "Cancel Subscription"
+                            )}
+                          </Button>
+                        )}
                         <Button 
                           size="sm"
                           variant="outline"
                           onClick={() => handleResetPassword(userDetails.user._id)}
-                          className="font-semibold text-xs rounded-xl flex-1"
+                          className="font-semibold text-xs rounded-xl flex-1 min-w-[120px]"
                         >
                           Reset Credentials
                         </Button>

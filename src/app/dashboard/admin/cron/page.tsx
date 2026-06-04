@@ -29,6 +29,13 @@ export default function AdminCronPage() {
   const [triggering, setTriggering] = useState(false);
   const [toggling, setToggling] = useState(false);
   
+  const [scanProgress, setScanProgress] = useState<{
+    progress: number;
+    companiesProcessed: number;
+    totalCompanies: number;
+    currentCompany: string;
+  } | null>(null);
+
   // Expanded log IDs
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
 
@@ -40,6 +47,10 @@ export default function AdminCronPage() {
       const statusRes = await api.get("/admin/cron/status");
       setIsEnabled(statusRes.data.isEnabled);
       setLastRun(statusRes.data.lastRun);
+      if (statusRes.data.activeScan) {
+        setScanProgress(statusRes.data.activeScan);
+        setTriggering(true);
+      }
     } catch (err) {
       console.error("Failed to fetch cron status:", err);
     }
@@ -63,12 +74,21 @@ export default function AdminCronPage() {
   useEffect(() => {
     loadData();
 
+    // Listen for progress updates
+    socket.on("cron:progress", (data: any) => {
+      setTriggering(true);
+      setScanProgress(data);
+    });
+
     // Listen for real-time cron completions
     socket.on("cron:status", () => {
       loadData();
+      setTriggering(false);
+      setScanProgress(null);
     });
 
     return () => {
+      socket.off("cron:progress");
       socket.off("cron:status");
     };
   }, []);
@@ -92,17 +112,19 @@ export default function AdminCronPage() {
 
     try {
       setTriggering(true);
+      setScanProgress({
+        progress: 0,
+        companiesProcessed: 0,
+        totalCompanies: 0,
+        currentCompany: "Initializing scan pipelines..."
+      });
       const res = await api.post("/admin/cron/trigger");
       setSuccessMessage(res.data.message);
-      
-      // Reload logs after short delay
-      setTimeout(() => {
-        loadData();
-      }, 3000);
     } catch (err) {
       console.error("Failed to trigger manual scan:", err);
-    } finally {
       setTriggering(false);
+      setScanProgress(null);
+    } finally {
       setTimeout(() => setSuccessMessage(null), 4000);
     }
   };
@@ -170,27 +192,47 @@ export default function AdminCronPage() {
           <div className="space-y-2">
             <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Run Manual Scanning System</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Dispatch background processes instantly to fetch job listings, code changes, and news articles for all targets.
+              {!scanProgress 
+                ? "Dispatch background processes instantly to fetch job listings, code changes, and news articles for all targets."
+                : `Scanning target: ${scanProgress.currentCompany || 'Initializing'}`}
             </p>
           </div>
 
-          <Button
-            onClick={handleTriggerManualScan}
-            disabled={triggering}
-            className="w-full mt-4 font-bold text-sm rounded-xl py-3 shadow-lg shadow-primary/10 gap-2"
-          >
-            {triggering ? (
-              <>
-                <Loader2 className="h-4.5 w-4.5 animate-spin" />
-                Processing Pipelines...
-              </>
-            ) : (
-              <>
-                <Play className="h-4.5 w-4.5" />
-                Scan All Watchlists
-              </>
-            )}
-          </Button>
+          {scanProgress ? (
+            <div className="space-y-2.5 mt-4">
+              <div className="flex justify-between items-center text-xs font-bold text-muted-foreground">
+                <span>Progress: {scanProgress.companiesProcessed} / {scanProgress.totalCompanies || '...'}</span>
+                <span className="text-primary">{scanProgress.progress}%</span>
+              </div>
+              <div className="h-3 w-full bg-muted border border-border/30 rounded-full overflow-hidden relative">
+                <div 
+                  style={{ width: `${scanProgress.progress}%` }} 
+                  className="h-full bg-gradient-to-r from-primary to-cyan-500 rounded-full transition-all duration-500" 
+                />
+              </div>
+              <span className="text-[10px] text-muted-foreground block text-center animate-pulse">
+                {scanProgress.progress === 100 ? "Syncing search logs..." : "Scanning in progress (20s rate limit delay)..."}
+              </span>
+            </div>
+          ) : (
+            <Button
+              onClick={handleTriggerManualScan}
+              disabled={triggering}
+              className="w-full mt-4 font-bold text-sm rounded-xl py-3 shadow-lg shadow-primary/10 gap-2"
+            >
+              {triggering ? (
+                <>
+                  <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                  Processing Pipelines...
+                </>
+              ) : (
+                <>
+                  <Play className="h-4.5 w-4.5" />
+                  Scan All Watchlists
+                </>
+              )}
+            </Button>
+          )}
         </div>
 
         {/* Last Run Stats Card */}

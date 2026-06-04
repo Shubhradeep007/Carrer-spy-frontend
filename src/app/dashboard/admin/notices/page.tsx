@@ -191,7 +191,7 @@ export default function AdminNoticesPage() {
               <motion.div
                 key={n._id}
                 layout
-                className={`bg-card border rounded-2xl p-5.5 shadow-sm hover:shadow-md transition flex flex-col justify-between gap-5 relative overflow-hidden ${
+                className={`bg-card border rounded-2xl p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-primary/30 transition-all duration-300 flex flex-col justify-between gap-5 relative overflow-hidden ${
                   n.isActive && !isExpired 
                     ? "border-primary/20 bg-primary/[0.005]" 
                     : "border-border/60 bg-muted/10 opacity-75"
@@ -204,8 +204,8 @@ export default function AdminNoticesPage() {
 
                 <div className="space-y-3">
                   <div className="flex justify-between items-start pl-2">
-                    <div className="flex flex-col gap-0.5">
-                      <h3 className="font-extrabold text-base text-foreground/90">{n.title}</h3>
+                    <div className="flex flex-col gap-1">
+                      <h3 className="font-extrabold text-base text-foreground/90 leading-snug">{n.title}</h3>
                       <span className="text-[10px] text-muted-foreground font-semibold">
                         By {n.createdBy?.name || "System Admin"} on {new Date(n.createdAt).toLocaleDateString()}
                       </span>
@@ -238,17 +238,19 @@ export default function AdminNoticesPage() {
 
                 <div className="border-t border-border/50 pt-4 flex items-center justify-between text-xs pl-2">
                   <span className="text-muted-foreground/70 font-semibold flex items-center gap-1">
-                    <Calendar className="h-3.5 w-3.5" />
+                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
                     Expires: {n.expiresAt ? new Date(n.expiresAt).toLocaleDateString() : "Never"}
                   </span>
                   
-                  <div className="flex gap-1">
+                  <div className="flex gap-1.5">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleToggleActive(n)}
-                      className={`text-xs font-semibold rounded-lg ${
-                        n.isActive ? "text-amber-500 hover:bg-amber-500/10" : "text-emerald-500 hover:bg-emerald-500/10"
+                      className={`text-xs font-bold rounded-xl transition-all ${
+                        n.isActive 
+                          ? "text-amber-500 hover:bg-amber-500/10 hover:text-amber-600" 
+                          : "text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-600"
                       }`}
                     >
                       {n.isActive ? "Deactivate" : "Activate"}
@@ -257,17 +259,17 @@ export default function AdminNoticesPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => openEditModal(n)}
-                      className="text-primary hover:bg-primary/10 rounded-lg"
+                      className="text-primary hover:bg-primary/10 rounded-xl"
                     >
-                      <Edit className="h-3.5 w-3.5" />
+                      <Edit className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(n._id)}
-                      className="text-rose-500 hover:bg-rose-500/10 rounded-lg"
+                      className="text-rose-500 hover:bg-rose-500/10 rounded-xl"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -284,10 +286,10 @@ export default function AdminNoticesPage() {
             {/* Overlay */}
             <motion.div 
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowModal(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+              className="fixed inset-0 bg-black/60 backdrop-blur-md"
             />
 
             {/* Content card */}
@@ -295,26 +297,26 @@ export default function AdminNoticesPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-card border border-border/80 shadow-2xl rounded-2xl w-full max-w-lg overflow-hidden flex flex-col z-10 relative"
+              className="bg-background border border-border shadow-2xl rounded-2xl w-full max-w-lg overflow-hidden flex flex-col z-10 relative"
             >
-              <div className="p-5 border-b border-border/60 flex justify-between items-center bg-muted/20">
+              <div className="p-5 border-b border-border/50 flex justify-between items-center bg-muted/20">
                 <div className="flex items-center gap-2">
-                  <Megaphone className="h-5 w-5 text-primary animate-bounce" />
+                  <Megaphone className="h-5 w-5 text-primary" />
                   <h3 className="font-extrabold text-base text-foreground/90">
                     {modalMode === "create" ? "Create Broadcast Notice" : "Edit Broadcast Notice"}
                   </h3>
                 </div>
                 <button 
                   onClick={() => setShowModal(false)}
-                  className="p-1 rounded-full hover:bg-muted text-muted-foreground"
+                  className="p-1.5 rounded-full hover:bg-muted text-muted-foreground transition-colors duration-200"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-5 space-y-4">
+              <form onSubmit={handleSubmit} className="p-6 space-y-5">
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground block mb-1">
+                  <label className="text-xs font-bold text-muted-foreground block mb-1.5 uppercase tracking-wider">
                     Announcement Title
                   </label>
                   <Input
@@ -322,12 +324,12 @@ export default function AdminNoticesPage() {
                     placeholder="e.g. Server Maintenance, Career Spy API quota alerts"
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
-                    className="rounded-xl"
+                    className="rounded-xl h-10 bg-muted/40 border-border/50 focus-visible:ring-primary focus-visible:border-primary transition-all duration-200"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground block mb-1">
+                  <label className="text-xs font-bold text-muted-foreground block mb-1.5 uppercase tracking-wider">
                     Broadcasting Content Message
                   </label>
                   <textarea
@@ -336,49 +338,49 @@ export default function AdminNoticesPage() {
                     placeholder="Provide details about the platform notice..."
                     value={formMessage}
                     onChange={(e) => setFormMessage(e.target.value)}
-                    className="w-full rounded-xl border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="w-full rounded-xl border border-border/50 bg-muted/40 px-3.5 py-2.5 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all duration-200 resize-none min-h-[120px]"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-bold text-muted-foreground block mb-1">
+                    <label className="text-xs font-bold text-muted-foreground block mb-1.5 uppercase tracking-wider">
                       Expiration Date (Optional)
                     </label>
                     <Input
                       type="date"
                       value={formExpiresAt}
                       onChange={(e) => setFormExpiresAt(e.target.value)}
-                      className="rounded-xl"
+                      className="rounded-xl h-10 bg-muted/40 border-border/50 focus-visible:ring-primary focus-visible:border-primary transition-all duration-200"
                     />
                   </div>
 
                   <div className="flex flex-col justify-end">
-                    <label className="text-xs font-bold text-muted-foreground flex items-center gap-2 cursor-pointer py-3">
+                    <label className="text-xs font-bold text-muted-foreground flex items-center gap-2 cursor-pointer py-3 select-none uppercase tracking-wider">
                       <input
                         type="checkbox"
                         checked={formIsActive}
                         onChange={(e) => setFormIsActive(e.target.checked)}
-                        className="rounded border-input text-primary focus:ring-primary h-4 w-4 shrink-0"
+                        className="rounded-md border-border/80 bg-muted/40 text-primary focus:ring-primary/40 h-4.5 w-4.5 shrink-0 transition-colors cursor-pointer accent-primary"
                       />
                       Active Broadcast
                     </label>
                   </div>
                 </div>
 
-                <div className="border-t border-border/50 pt-4 flex gap-3 justify-end">
+                <div className="border-t border-border/50 pt-5 flex gap-3 justify-end">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setShowModal(false)}
-                    className="font-semibold text-xs rounded-xl"
+                    className="font-bold text-xs rounded-xl h-10 px-5 transition-all duration-200"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={submitting}
-                    className="font-semibold text-xs rounded-xl px-5"
+                    className="font-bold text-xs rounded-xl h-10 px-6 transition-all duration-200"
                   >
                     {submitting ? (
                       <>

@@ -5,7 +5,7 @@ import api from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { 
   Loader2, Users, Radio, Bell, TrendingUp, AlertTriangle, 
-  Cpu, Terminal, Activity, HelpCircle, AlertCircle
+  Cpu, Terminal, Activity, HelpCircle, AlertCircle, CreditCard
 } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
@@ -78,6 +78,14 @@ export default function AdminAnalyticsPage() {
     volume: s.count
   }));
 
+  const totalSubscribers = (analyticsData.revenue?.freeCount || 0) + 
+                           (analyticsData.revenue?.basicCount || 0) + 
+                           (analyticsData.revenue?.proCount || 0) || 1;
+
+  const freePct = Math.round(((analyticsData.revenue?.freeCount || 0) / totalSubscribers) * 100);
+  const basicPct = Math.round(((analyticsData.revenue?.basicCount || 0) / totalSubscribers) * 100);
+  const proPct = Math.round(((analyticsData.revenue?.proCount || 0) / totalSubscribers) * 100);
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-10">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -99,7 +107,7 @@ export default function AdminAnalyticsPage() {
       </header>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <motion.div 
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -168,7 +176,147 @@ export default function AdminAnalyticsPage() {
             </span>
           </div>
         </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+          className="bg-card border border-border/80 rounded-2xl p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between"
+        >
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shadow-inner">
+              <CreditCard className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Active Monthly Revenue</p>
+              <h3 className="text-3xl font-bold tracking-tight mt-1">₹{analyticsData.revenue?.total?.toLocaleString('en-IN') || 0}</h3>
+            </div>
+          </div>
+          <div className="border-t border-border/50 pt-4 mt-4 flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Paying subscribers:</span>
+            <span className="bg-emerald-500/15 text-emerald-500 px-2 py-0.5 rounded font-bold">
+              {(analyticsData.revenue?.basicCount || 0) + (analyticsData.revenue?.proCount || 0)} users
+            </span>
+          </div>
+        </motion.div>
       </div>
+
+      {/* Subscription & Revenue Analytics Section */}
+      <motion.section 
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+        className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+      >
+        {/* Plan Distribution Card */}
+        <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between gap-6">
+          <h2 className="text-lg font-bold text-foreground flex items-center gap-2 border-b border-border/50 pb-4">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            Subscription Plan Distribution
+          </h2>
+          <div className="space-y-4 my-auto">
+            {/* Pro Plan */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center text-sm font-semibold">
+                <span className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-cyan-500" />
+                  Pro Plan (₹1,500/mo)
+                </span>
+                <span className="text-muted-foreground">{analyticsData.revenue?.proCount || 0} users ({proPct}%)</span>
+              </div>
+              <div className="h-2 w-full bg-muted border border-border/30 rounded-full overflow-hidden">
+                <div style={{ width: `${proPct}%` }} className="h-full bg-cyan-500 rounded-full" />
+              </div>
+            </div>
+
+            {/* Basic Plan */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center text-sm font-semibold">
+                <span className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-primary" />
+                  Basic Plan (₹500/mo)
+                </span>
+                <span className="text-muted-foreground">{analyticsData.revenue?.basicCount || 0} users ({basicPct}%)</span>
+              </div>
+              <div className="h-2 w-full bg-muted border border-border/30 rounded-full overflow-hidden">
+                <div style={{ width: `${basicPct}%` }} className="h-full bg-primary rounded-full" />
+              </div>
+            </div>
+
+            {/* Free Plan */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center text-sm font-semibold">
+                <span className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-muted-foreground/60" />
+                  Free Plan (₹0/mo)
+                </span>
+                <span className="text-muted-foreground">{analyticsData.revenue?.freeCount || 0} users ({freePct}%)</span>
+              </div>
+              <div className="h-2 w-full bg-muted border border-border/30 rounded-full overflow-hidden">
+                <div style={{ width: `${freePct}%` }} className="h-full bg-muted-foreground/50 rounded-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Purchases Card */}
+        <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between gap-4">
+          <h2 className="text-lg font-bold text-foreground flex items-center gap-2 border-b border-border/50 pb-4">
+            <Users className="h-5 w-5 text-indigo-500" />
+            Recent Subscription Customers
+          </h2>
+          <div className="overflow-x-auto border border-border/60 rounded-xl max-h-[220px] overflow-y-auto bg-muted/5">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-muted/30 border-b border-border/40 text-[10px] uppercase font-bold tracking-wider text-muted-foreground sticky top-0 backdrop-blur-md">
+                <tr>
+                  <th className="p-3 font-semibold">User</th>
+                  <th className="p-3 font-semibold">Tier</th>
+                  <th className="p-3 font-semibold">Payment / Order ID</th>
+                  <th className="p-3 font-semibold text-right">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/30">
+                {(!analyticsData.purchasedUsers || analyticsData.purchasedUsers.length === 0) ? (
+                  <tr>
+                    <td colSpan={4} className="p-8 text-center text-muted-foreground font-medium italic">
+                      No active paid subscriptions found.
+                    </td>
+                  </tr>
+                ) : (
+                  analyticsData.purchasedUsers.map((u: any, idx: number) => (
+                    <tr key={idx} className="hover:bg-muted/15 transition-colors">
+                      <td className="p-3">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-bold text-foreground/80">{u.name}</span>
+                          <span className="text-[10px] text-muted-foreground">{u.email}</span>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider ${
+                          u.subscriptionStatus === "pro"
+                            ? "bg-cyan-500/10 text-cyan-500 border border-cyan-500/15"
+                            : "bg-primary/10 text-primary border border-primary/15"
+                        }`}>
+                          {u.subscriptionStatus}
+                        </span>
+                      </td>
+                      <td className="p-3 font-mono text-[9px] text-muted-foreground leading-normal">
+                        <div className="flex flex-col">
+                          <span>Pay: {u.razorpayPaymentId || "mock_payment"}</span>
+                          <span>Ord: {u.razorpayOrderId || "mock_order"}</span>
+                        </div>
+                      </td>
+                      <td className="p-3 text-right text-muted-foreground font-semibold">
+                        {new Date(u.updatedAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </motion.section>
 
       {/* API Monitoring Panel */}
       {apiUsageData && (

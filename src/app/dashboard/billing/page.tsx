@@ -406,11 +406,8 @@ function BillingPageContent() {
           })}
         </section>
 
-        {/* Bottom support links */}
-        <div className="text-center pt-8 text-[11px] text-muted-foreground/80 flex justify-center items-center gap-1.5 font-medium">
-          <HelpCircle className="h-3.5 w-3.5" />
-          <span>Demo checkout simulation. No charges will be applied.</span>
-        </div>
+       
+       
 
       </div>
       <Footer />
