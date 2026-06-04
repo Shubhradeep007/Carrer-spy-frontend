@@ -35,30 +35,26 @@ function NavbarContent() {
           </Link>
           
           <nav className="hidden md:flex items-center gap-6 text-xs font-bold uppercase tracking-wider">
-            <Link 
-              href="/dashboard?tab=watchlist" 
-              className={`transition-colors hover:text-foreground ${
-                isActive("/dashboard", "watchlist") ? "text-primary" : "text-muted-foreground"
-              }`}
-            >
-              Dashboard
-            </Link>
-            <Link 
-              href="/dashboard?tab=jobs" 
-              className={`transition-colors hover:text-foreground ${
-                isActive("/dashboard", "jobs") ? "text-primary" : "text-muted-foreground"
-              }`}
-            >
-              Jobs Board
-            </Link>
-            <Link 
-              href="/dashboard?tab=resume" 
-              className={`transition-colors hover:text-foreground ${
-                isActive("/dashboard", "resume") ? "text-primary" : "text-muted-foreground"
-              }`}
-            >
-              My Resume
-            </Link>
+            {isAuthenticated && (
+              <>
+                <Link 
+                  href="/dashboard?tab=watchlist" 
+                  className={`transition-colors hover:text-foreground ${
+                    isActive("/dashboard", "watchlist") ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
+                  Dashboard
+                </Link>
+                <Link 
+                  href="/dashboard/billing" 
+                  className={`transition-colors hover:text-foreground ${
+                    isActive("/dashboard/billing") ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
+                  Billing
+                </Link>
+              </>
+            )}
             {user?.role === "admin" && (
               <Link 
                 href="/dashboard/admin/analytics" 

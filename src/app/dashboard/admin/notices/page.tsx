@@ -319,7 +319,7 @@ export default function AdminNoticesPage() {
                   </label>
                   <Input
                     required
-                    placeholder="e.g. Server Maintenance, Gemini 2.5 flash quota alerts"
+                    placeholder="e.g. Server Maintenance, Career Spy API quota alerts"
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
                     className="rounded-xl"

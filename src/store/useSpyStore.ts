@@ -13,6 +13,7 @@ export interface WatchedCompany {
     verdict: "HOT" | "WARM" | "COLD";
     aiSummary: string;
     aiAction: string;
+    outreachMessage?: string;
     jobsList?: Array<{ title: string; url: string; location: string; salary: string }>;
     newsArticles?: Array<{ title: string; url: string; pubDate: string; source: string }>;
   };

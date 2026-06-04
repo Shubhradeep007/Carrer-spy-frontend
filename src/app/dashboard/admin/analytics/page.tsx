@@ -86,7 +86,7 @@ export default function AdminAnalyticsPage() {
             System Analytics & Diagnostics
           </h1>
           <p className="text-muted-foreground mt-1">
-            Real-time aggregate data, Gemini AI utilization, and NewsAPI warnings.
+            Real-time aggregate data, Career Spy AI utilization, and NewsAPI warnings.
           </p>
         </div>
         
